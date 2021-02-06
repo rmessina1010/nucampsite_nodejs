@@ -1,47 +1,76 @@
 const express = require('express');
+const Promotion = require('../models/promotion');
+
 const promotionRouter = express.Router();
 
 promotionRouter.route('/')
 
-    .all((req, res, next) => {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/plain');
-        next();
+    .get((req, res, next) => {
+        Promotion.find()
+            .then(promotions => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'applications/json');
+                res.json(promotions);
+            })
+            .catch(err => next(err));
     })
-    .get((req, res) => {
-        res.end('We will send ALL the promotions to you.');
-    })
-    .post((req, res) => {
-        console.log(req.body);
-        res.end(`We will add the promotions: ${req.body.name} with the description:  ${req.body.description}`);
+    .post((req, res, next) => {
+        Promotion.create(req.body)
+            .then(promotion => {
+                console.log('Promotion Created ', promotion);
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'applications/json');
+                res.json(promotion);
+            })
+            .catch(err => next(err));
     })
     .put((req, res) => {
         res.statusCode = 403;
         res.end('PUT operation not supported on /promotions.');
     })
     .delete((req, res, next) => {
-        res.end(' Deleting all promotions.');
+        Promotion.deleteMany()
+            .then(response => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'applications/json');
+                res.json(response);
+            })
+            .catch(err => next(err));
     });
 
 promotionRouter.route('/:promotionId')
-    .all((req, res, next) => {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/plain');
-        next();
-    })
     .get((req, res) => {
-        res.end(`We will send details of the promotion: ${req.params.promotionId} to you.`);
+        Promotion.findById(req.params.promotionId)
+            .then(promotion => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'applications/json');
+                res.json(promotion);
+            })
+            .catch(err => next(err));
     })
     .post((req, res) => {
         res.statusCode = 403;
         res.end(`POST operation not supported on /promotions/${req.params.promotionId}`);
     })
     .put((req, res) => {
-        res.write(`Updating the promotion:${req.params.promotionId}\n`);
-        res.end(`Will update the promotion: ${req.body.name} with the description:${req.body.description}`);
+        Promotion.findByIdAndUpdate(req.params.promotionId,
+            { $set: req.body },
+            { new: true })
+            .then(promotion => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'applications/json');
+                res.json(promotion);
+            })
+            .catch(err => next(err));
     })
     .delete((req, res) => {
-        res.end(`Deleting promotion ${req.params.promotionId}.`);
+        Promotion.findByIdAndDelete(req.params.promotionId)
+            .then(promotion => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'applications/json');
+                res.json(promotion);
+            })
+            .catch(err => next(err));
     });
 
 module.exports = promotionRouter;
