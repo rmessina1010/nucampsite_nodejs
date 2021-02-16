@@ -26,7 +26,7 @@ promotionRouter.route('/')
             })
             .catch(err => next(err));
     })
-    .put((req, res) => {
+    .put(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end('PUT operation not supported on /promotions.');
     })
@@ -50,7 +50,7 @@ promotionRouter.route('/:promotionId')
             })
             .catch(err => next(err));
     })
-    .post((req, res) => {
+    .post(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
         res.end(`POST operation not supported on /promotions/${req.params.promotionId}`);
     })

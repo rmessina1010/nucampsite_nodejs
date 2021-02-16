@@ -116,7 +116,7 @@ campsiteRouter.route('/:campsiteId/comments')
     })
     .put(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
-        res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}.`);
+        res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentId}.`);
     })
     .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
@@ -165,7 +165,7 @@ campsiteRouter.route('/:campsiteId/comments/:commentId')
     })
     .post(authenticate.verifyUser, (req, res) => {
         res.statusCode = 403;
-        res.end(`POST operation not supported on /campsites/${req.params.campsiteId}/${req.params.commentId}.`);
+        res.end(`POST operation not supported on /campsites/${req.params.campsiteId}}/comments/${req.params.commentId}.`);
     })
     .put(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
