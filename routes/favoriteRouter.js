@@ -1,5 +1,6 @@
 const express = require('express');
 const Favorite = require('../models/favorites');
+const Campsite = require('../models/campsite');
 const favoriteRouter = express.Router();
 const authenticate = require('../authenticate');
 const cors = require('./cors');
@@ -73,34 +74,54 @@ favoriteRouter.route('/')
 favoriteRouter.route('/:campsiteId')
     .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
     .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-        Favorite.findOne({ user: req.user._id })
-            .then(userFavs => {
-                if (userFavs) {
-                    if (userFavs.campsites.indexOf(req.params.campsiteId) < 0) {
-                        userFavs.campsites.push(req.params.campsiteId);
-                        userFavs.save()
-                            .then(userFavs => {
-                                res.statusCode = 200;
-                                res.setHeader('Content-Type', 'applications/json');
-                                res.json(userFavs);
-                            })
-                            .catch(err => next(err));
-                    } else {
-                        res.statusCode = 200;
-                        res.setHeader('Content-Type', 'text/plain');
-                        res.end("That campsite is already in the list of favorites!")
-                    }
-                } else {
-                    Favorite.create({ user: req.user._id, campsites: [req.params.campsiteId] })
+        //bonus task, verifying campsite existence
+        Campsite.findOne({ _id: req.params.campsiteId })
+            .then(theCampsite => {
+                if (theCampsite) {
+                    //bonus task, verifying campsite existence
+                    Favorite.findOne({ user: req.user._id })
                         .then(userFavs => {
-                            res.statusCode = 200;
-                            res.setHeader('Content-Type', 'applications/json');
-                            res.json(userFavs);
+                            if (userFavs) {
+                                if (userFavs.campsites.indexOf(req.params.campsiteId) < 0) {
+                                    userFavs.campsites.push(req.params.campsiteId);
+                                    userFavs.save()
+                                        .then(userFavs => {
+                                            res.statusCode = 200;
+                                            res.setHeader('Content-Type', 'applications/json');
+                                            res.json(userFavs);
+                                        })
+                                        .catch(err => next(err));
+                                } else {
+                                    res.statusCode = 200;
+                                    res.setHeader('Content-Type', 'text/plain');
+                                    res.end("That campsite is already in the list of favorites!")
+                                }
+                            } else {
+                                Favorite.create({ user: req.user._id, campsites: [req.params.campsiteId] })
+                                    .then(userFavs => {
+                                        res.statusCode = 200;
+                                        res.setHeader('Content-Type', 'applications/json');
+                                        res.json(userFavs);
+                                    })
+                                    .catch(err => next(err));
+                            }
                         })
                         .catch(err => next(err));
+                } else {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'text/plain');
+                    res.end(`Could not add the campsite with ID:${req.params.campsiteId} because does not exist`);
                 }
             })
-            .catch(err => next(err));
+            .catch(() => {
+                //bonus
+                // so it turns out mongo/mongoose throws an err , instead of returning null
+                // if the _id provided is not correctly formed,  I chose to custom handle
+                // that error  to return a user message, rather than the system error message
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'text/plain');
+                res.end(`Could not add the campsite with   because the ID providided is not valid or an error occured`);
+            });
     })
     .delete(cors.cors, authenticate.verifyUser, (req, res, next) => {
         Favorite.findOne({ user: req.user._id })
