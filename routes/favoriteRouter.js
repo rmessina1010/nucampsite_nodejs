@@ -18,7 +18,7 @@ favoriteRouter.route('/')
             })
             .catch(err => next(err));
     })
-    .post(cors.cors, authenticate.verifyUser, (req, res, next) => {
+    .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Favorite.findOne({ user: req.user._id })
             .then(userFavs => {
                 if (userFavs) {
@@ -48,7 +48,7 @@ favoriteRouter.route('/')
             })
             .catch(err => next(err));
     })
-    .delete(cors.cors, authenticate.verifyUser, (req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Favorite.findOneAndDelete({ user: req.user._id })
             .then(userFavs => {
                 if (userFavs) {
@@ -123,7 +123,7 @@ favoriteRouter.route('/:campsiteId')
                 res.end(`Could not add the campsite with   because the ID providided is not valid or an error occured`);
             });
     })
-    .delete(cors.cors, authenticate.verifyUser, (req, res, next) => {
+    .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
         Favorite.findOne({ user: req.user._id })
             .then(userFavs => {
                 let delIndex = userFavs.campsites.indexOf(req.params.campsiteId);
